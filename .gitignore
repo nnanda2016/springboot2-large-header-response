@@ -28,11 +28,9 @@ build/
 test-output/
 .apt_generated/
 .factorypath
-demo
 out/
 .dist/
 .out/
-*keys*
 *temp
 temp/
 secrets*
