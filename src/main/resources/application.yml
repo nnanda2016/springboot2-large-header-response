@@ -1,0 +1,30 @@
+spring:
+  profiles:
+    active: local
+
+---
+
+spring:
+  profiles: local
+  application:
+    name: Demo App
+
+server:
+  port: 5002
+
+logging:
+  config: classpath:log4j2.xml
+ 
+# Actuator endpoint management
+management:
+  trace:
+    http:
+      enabled: false
+  endpoints:
+    web:
+      base-path: /manage
+      exposure:
+        include: shutdown,loggers,health,info,metrics
+  endpoint:
+    shutdown:
+      enabled: true

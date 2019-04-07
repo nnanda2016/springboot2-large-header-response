@@ -1,0 +1,121 @@
+buildscript {
+	ext {
+		spring_boot_version = '2.1.3.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+		maven { url "https://repo.spring.io/snapshot" }
+		maven { url "https://repo.spring.io/milestone" }
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${spring_boot_version}")
+	}
+}
+
+apply plugin: "maven"
+apply plugin: "eclipse"
+
+apply plugin: 'java-library'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'distribution'
+
+sourceCompatibility = java_version_compatibility
+targetCompatibility = java_version_compatibility
+
+// Repositories to work with
+repositories {
+	// Local Maven Repo
+	mavenLocal()
+	mavenCentral()
+	
+	maven { url "https://repo.spring.io/snapshot" }
+	maven { url "https://repo.spring.io/milestone" }
+}
+
+ext {
+	reactor_bom_version = "Californium-SR6"
+	reactor_extra_version = "3.2.2.RELEASE"
+	
+	commons_collections4_version = "4.1"
+	commons_lang3_version = "3.8.1"
+    guava_version = "25.1-jre"
+	
+	// Logging related
+	slf4j_version = "1.7.25"
+	log4j2_version = "2.11.0"
+	lmax_disruptor_version = "3.4.2"
+}
+
+dependencyManagement {
+	imports {
+        mavenBom "io.projectreactor:reactor-bom:${reactor_bom_version}"
+    }
+}
+
+configurations {
+	compile.exclude module: 'spring-boot-starter-logging'
+	compile.exclude module: 'spring-boot-starter-tomcat'
+	compile.exclude module: 'spring-boot-starter-jetty'
+	compile.exclude module: 'spring-security-web'
+	compile.exclude module: 'spring-security-test'
+	compile.exclude module: 'spring-asm'
+	compile.exclude module: 'slf4j-log4j12'
+	
+	compile.exclude group: 'asm'
+	compile.exclude group: 'ch.qos.cal10n'
+	compile.exclude group: 'ch.qos.logback'
+	compile.exclude group: 'org.springframework.data'
+	compile.exclude group: 'org.apache.tomcat'
+}
+
+dependencies {
+    compile "org.springframework.boot:spring-boot-starter-actuator"
+	compile "org.springframework.boot:spring-boot-starter-aop"
+	compile "org.springframework.boot:spring-boot-starter-webflux"
+	compile "org.springframework.boot:spring-boot-starter-log4j2"
+	compile "org.springframework.boot:spring-boot-loader"
+	compile "io.projectreactor.addons:reactor-extra:${reactor_extra_version}"
+	
+	compile "com.google.guava:guava:${guava_version}"
+	compile "org.apache.commons:commons-lang3:${commons_lang3_version}"
+	compile "org.apache.commons:commons-collections4:${commons_collections4_version}"
+	
+	// Logging related
+	compile "org.slf4j:slf4j-api:${slf4j_version}"
+	compile "org.slf4j:slf4j-ext:${slf4j_version}"
+	compile "org.slf4j:jcl-over-slf4j:${slf4j_version}"
+	compile "org.apache.logging.log4j:log4j-slf4j-impl:${log4j2_version}"
+    compile "org.apache.logging.log4j:log4j-api:${log4j2_version}"
+    compile "org.apache.logging.log4j:log4j-core:${log4j2_version}"
+    compile "org.apache.logging.log4j:log4j-web:${log4j2_version}"
+    compile "org.apache.logging.log4j:log4j-slf4j-impl:${log4j2_version}"
+    compile "com.lmax:disruptor:${lmax_disruptor_version}"
+}
+
+bootJar {
+	manifest {
+		attributes 'Manifest-Version': '1.0',
+			'Start-Class': 'com.demo.ApplicationRunner',
+			'Main-Class': 'org.springframework.boot.loader.PropertiesLauncher',
+			'Jdk-Version': System.getProperty('java.version') + ' (' + System.getProperty("java.vm.vendor") + ')'
+	}
+}
+
+bootRun {
+	main = 'com.demo.ApplicationRunner' 
+	jvmArgs = [
+		'-XX:+UseStringDeduplication',
+		'-Xms1g',
+		'-Xmx1g',
+		'-Xdebug',
+		'-Xrunjdwp:transport=dt_socket,address=8802,server=y,suspend=n',
+		'-Dspring.profiles.active=local',
+		'-DprocessingHostName=localhost',
+		'-DprocessingInstance=instance1',
+		'-DspringAppProfile=local',
+		'-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector',
+		'-Dlog4j.shutdownHookEnabled=false'
+	]
+}
+
